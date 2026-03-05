@@ -1,0 +1,68 @@
+# ──────────────────────────────────────────────
+# Trading Bot Configuration
+# ──────────────────────────────────────────────
+
+mode: paper  # paper | live  (start with paper!)
+
+exchange:
+  name: bybit          # any ccxt-supported exchange (bybit, binance, kraken, coinbase, etc.)
+  sandbox: false       # set true to use Bybit testnet (testnet.bybit.com)
+
+trading:
+  symbol: BTC/USDT
+  timeframe: 4h        # 1m, 5m, 15m, 1h, 4h, 1d (4h recommended by research)
+  candle_limit: 720    # how many candles to fetch (need 200+ warmup for EMA 200)
+
+strategy:
+  name: alpha_composite  # sma_crossover | rsi | macd | bollinger | alpha_composite
+  params:
+    # ─── Alpha Composite (recommended) ───
+    # Trend filters
+    ema_fast_period: 50
+    ema_slow_period: 200
+    adx_period: 14
+    adx_threshold: 20        # minimum ADX to confirm trend exists
+    # Momentum
+    rsi_period: 14
+    rsi_overbought: 65
+    rsi_oversold: 35
+    rsi_midline: 50
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    # Volume
+    volume_ma_period: 20
+    volume_threshold: 1.1    # volume must be 1.1x its MA
+    # ATR exits
+    atr_period: 14
+    atr_sl_multiplier: 2.0   # stop-loss = entry - (ATR * 2.0)
+    atr_tp_multiplier: 3.0   # take-profit = entry + (ATR * 3.0)  → 1.5:1 R:R
+    atr_trail_multiplier: 2.5 # trailing stop uses ATR * 2.5
+    # Regime detection
+    bb_period: 20
+    bb_std: 2.0
+    bb_bandwidth_lookback: 50
+    squeeze_percentile: 0.15  # skip trades when bandwidth is in lowest 15%
+
+    # ─── SMA Crossover ───
+    fast_period: 10
+    slow_period: 30
+
+risk:
+  max_position_pct: 0.015    # risk max 1.5% of portfolio per trade (fractional Kelly)
+  stop_loss_pct: 0.03        # fallback 3% stop-loss (ATR-based used by alpha_composite)
+  take_profit_pct: 0.06      # fallback 6% take-profit
+  trailing_stop_pct: 0.02    # fallback 2% trailing stop
+  max_open_trades: 2         # conservative: max 2 concurrent positions
+  use_atr_stops: true        # use ATR-adaptive stops when strategy supports it
+
+backtest:
+  start_date: "2025-01-01"
+  end_date: "2025-12-31"
+  initial_balance: 10000
+
+logging:
+  level: INFO                 # DEBUG | INFO | WARNING | ERROR
+  file: logs/trading.log
+
+poll_interval_seconds: 60     # how often to check for signals in live/paper mode
